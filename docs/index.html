@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performance — Ryan Benjamine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500&family=EB+Garamond:ital,wght@1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F1EB;
+    --bg-alt: #EBE5DA;
+    --ink: #1A1A1A;
+    --body: #3A3A38;
+    --muted: #6B6862;
+    --hairline: rgba(26, 26, 26, .14);
+    --green: #1F4D38;
+    --tan: #8A7355;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--body);
+    font-family: "Bricolage Grotesque", sans-serif;
+  }
+
+  .mono {
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: .13em;
+  }
+
+  .page {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 96px 32px 112px;
+  }
+
+  /* ---- header ---- */
+  .masthead {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+    flex-wrap: wrap;
+    padding-bottom: 56px;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    font-size: 13px;
+    color: var(--tan);
+    margin-bottom: 20px;
+  }
+
+  h1 {
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    font-size: clamp(40px, 5.5vw, 68px);
+    line-height: 1.05;
+    color: var(--ink);
+  }
+
+  h1 em {
+    font-family: "EB Garamond", serif;
+    font-style: italic;
+    font-weight: 500;
+    color: var(--green);
+  }
+
+  .status {
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+    padding-bottom: 10px;
+  }
+
+  /* ---- aggregate stat blocks (1px hairline grid motif) ---- */
+  .totals {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--hairline);
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .stat {
+    background: var(--bg);
+    padding: 44px 36px 48px;
+  }
+
+  .stat-label {
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: .13em;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 18px;
+  }
+
+  .stat-value {
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    font-size: clamp(48px, 4.8vw, 64px);
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .stat-value.green { color: var(--green); }
+
+  /* ---- platform breakdown (spec-sheet table) ---- */
+  .breakdown { padding-top: 88px; }
+
+  .breakdown .eyebrow { margin-bottom: 28px; }
+
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th {
+    font-family: "IBM Plex Mono", monospace;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: .13em;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+    padding: 0 20px 14px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  th:first-child { text-align: left; padding-left: 0; }
+  th:last-child { padding-right: 0; }
+
+  td {
+    padding: 26px 20px;
+    border-bottom: 1px solid var(--hairline);
+    text-align: right;
+  }
+
+  td:first-child { text-align: left; padding-left: 0; }
+  td:last-child { padding-right: 0; }
+
+  td.num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 15px;
+    color: var(--body);
+  }
+
+  .pill {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: .13em;
+    font-size: 11px;
+    color: var(--ink);
+    background: var(--bg-alt);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 7px 16px;
+  }
+
+  /* ---- footer ---- */
+  footer {
+    background: var(--ink);
+    color: var(--bg);
+    font-family: "IBM Plex Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: .13em;
+    font-size: 12px;
+    text-align: center;
+    padding: 40px 32px;
+  }
+
+  @media (max-width: 880px) {
+    .totals { grid-template-columns: repeat(2, 1fr); }
+    .stat { padding: 32px 24px 36px; }
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">&sect; 08 &mdash; Performance</p>
+        <h1>The numbers, <em>refreshed weekly</em></h1>
+      </div>
+      <p class="status">Last updated &middot; 2026-06-10</p>
+    </header>
+
+    <section class="totals">
+        <div class="stat">
+          <p class="stat-label">Total Views</p>
+          <p class="stat-value green">5.8M</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Total Likes</p>
+          <p class="stat-value">595K</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Total Shares</p>
+          <p class="stat-value">31K</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">Total Followers</p>
+          <p class="stat-value green">81.9K</p>
+        </div>
+    </section>
+
+    <section class="breakdown">
+      <p class="eyebrow">Platform breakdown</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Views</th>
+              <th>Likes</th>
+              <th>Shares</th>
+              <th>Comments</th>
+              <th>Followers</th>
+            </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td><span class="pill">YouTube</span></td>
+            <td class="num">1,240,000</td>
+            <td class="num">86,000</td>
+            <td class="num">—</td>
+            <td class="num">9,400</td>
+            <td class="num">12,400</td>
+          </tr>
+          <tr>
+            <td><span class="pill">TikTok</span></td>
+            <td class="num">3,900,000</td>
+            <td class="num">412,000</td>
+            <td class="num">31,000</td>
+            <td class="num">18,700</td>
+            <td class="num">48,200</td>
+          </tr>
+          <tr>
+            <td><span class="pill">Instagram</span></td>
+            <td class="num">640,000</td>
+            <td class="num">97,000</td>
+            <td class="num">—</td>
+            <td class="num">6,100</td>
+            <td class="num">21,300</td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>Ryan Benjamine &middot; UGC &middot; 2026</footer>
+</body>
+</html>
