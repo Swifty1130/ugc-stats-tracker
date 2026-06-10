@@ -2,7 +2,7 @@
 
 Actors used (both fetch PUBLIC profile data only — no login, no OAuth):
   - TikTok:    clockworks/tiktok-scraper
-  - Instagram: apify/instagram-scraper
+  - Instagram: apify/instagram-reel-scraper
 
 Each run: start the Actor, poll until it finishes, then download its dataset.
 Needs the APIFY_TOKEN environment variable.
@@ -121,7 +121,7 @@ def fetch_instagram_rows(accounts):
             "account": account,
             "followers": profile.get("followersCount"),
             # Only video posts have a view count; photos contribute 0.
-            "total_views": sum(post.get("videoViewCount") or 0 for post in latest_posts),
+            "total_views": sum(post.get("videoPlayCount") or 0 for post in latest_posts),
             # likesCount is -1 when the creator hides likes on a post.
             "total_likes": sum(max(post.get("likesCount") or 0, 0) for post in latest_posts),
             "total_shares": None,  # Instagram does not expose share counts publicly
