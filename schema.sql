@@ -19,3 +19,8 @@ create table if not exists daily_stats (
   -- so re-running on the same day overwrites instead of duplicating.
   unique (captured_at, platform, account)
 );
+
+-- With RLS on and no policies defined, the table is inaccessible to the
+-- public anon key. The GitHub Action still works because the service_role
+-- key bypasses RLS.
+alter table daily_stats enable row level security;
