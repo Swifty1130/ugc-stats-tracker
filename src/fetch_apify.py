@@ -2,7 +2,7 @@
 
 Actors used (both fetch PUBLIC profile data only — no login, no OAuth):
   - TikTok:    clockworks/tiktok-scraper
-  - Instagram: apify/instagram-reel-scraper
+  - Instagram: apify/instagram-scraper
 
 Each run: start the Actor, poll until it finishes, then download its dataset.
 Needs the APIFY_TOKEN environment variable.
@@ -65,49 +65,36 @@ def _run_actor(actor_id, run_input):
     return response.json()
 
 
-def fetch_instagram_rows(accounts):
-    """Return one normalized stats row per Instagram handle in `accounts`.
+def fetch_tiktok_rows(accounts):
+    """Return one normalized stats row per TikTok handle in `accounts`.
 
-    The apify/instagram-reel-scraper returns a flat list of individual post items.
-    Follower counts and total posts are pulled from the owner profile metadata attached
-    to the first item, while videoPlayCount, likes, and comments are summed across all items.
+    The scraper returns one item per video, each carrying the profile's
+    authorMeta. Followers and total likes come from authorMeta (account-wide
+    figures); views, shares and comments are summed over the scraped videos.
     """
     rows = []
     for account in accounts:
-        clean_handle = account.lstrip("@")
-        
-        # 1. Fixed input keys to match the Reel Scraper schema requirements
-        items = _run_actor("apify/instagram-reel-scraper", {
-            "username": [clean_handle],
-            "resultsLimit": 20,  # Limits how many recent reels it scans to save compute
+        items = _run_actor("clockworks/tiktok-scraper", {
+            "profiles": [account.lstrip("@")],
+            "resultsPerPage": TIKTOK_VIDEOS_PER_PROFILE,
         })
         if not items:
-            raise ValueError(f"Instagram scrape returned nothing for {account!r} — check the handle")
+            raise ValueError(f"TikTok scrape returned nothing for {account!r} — check the handle")
 
-        # 2. Extract profile-wide metrics from the owner object meta of the first post
-        first_post_owner = items[0].get("owner", {})
-        followers = first_post_owner.get("followersCount") or 0
-        posts_count = first_post_owner.get("postsCount") or 0
-
-        # 3. Sum the active fields directly across the flat items array
-        total_views = sum(post.get("videoPlayCount") or 0 for post in items)
-        total_likes = sum(max(post.get("likesCount") or 0, 0) for post in items)
-        total_comments = sum(post.get("commentsCount") or 0 for post in items)
-
+        author = items[0].get("authorMeta", {})
         rows.append({
-            "platform": "instagram",
+            "platform": "tiktok",
             "account": account,
-            "followers": followers,
-            "total_views": total_views,
-            "total_likes": total_likes,
-            "total_shares": None,  # Instagram does not expose share counts publicly
-            "total_comments": total_comments,
-            "video_count": posts_count,
+            "followers": author.get("fans"),
+            "total_views": sum(item.get("playCount", 0) for item in items),
+            # authorMeta.heart is TikTok's public account-wide like total.
+            "total_likes": author.get("heart", 0),
+            "total_shares": sum(item.get("shareCount", 0) for item in items),
+            "total_comments": sum(item.get("commentCount", 0) for item in items),
+            "video_count": author.get("video"),
         })
-        
-        print(f"[instagram] {account}: {followers:,} followers, "
-              f"{len(items)} recent reels summed (Total Views: {total_views:,})")
-              
+        print(f"[tiktok] {account}: {rows[-1]['total_views']:,} views across "
+              f"{len(items)} recent videos")
     return rows
 
 
@@ -120,7 +107,7 @@ def fetch_instagram_rows(accounts):
     """
     rows = []
     for account in accounts:
-        items = _run_actor("apify/instagram-reel-scraper", {
+        items = _run_actor("apify/instagram-scraper", {
             "directUrls": [f"https://www.instagram.com/{account.lstrip('@')}/"],
             "resultsType": "details",
         })
@@ -134,7 +121,7 @@ def fetch_instagram_rows(accounts):
             "account": account,
             "followers": profile.get("followersCount"),
             # Only video posts have a view count; photos contribute 0.
-            "total_views": sum(post.get("videoPlayCount") or 0 for post in latest_posts),
+            "total_views": sum(post.get("videoViewCount") or 0 for post in latest_posts),
             # likesCount is -1 when the creator hides likes on a post.
             "total_likes": sum(max(post.get("likesCount") or 0, 0) for post in latest_posts),
             "total_shares": None,  # Instagram does not expose share counts publicly
