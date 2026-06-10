@@ -1,10 +1,6 @@
 {
   "_comment": "Replace the placeholders below with your real PUBLIC handles. YouTube accepts a channel ID (starts with 'UC') or an @handle. TikTok handles keep the @. Instagram handles have no @. Add more than one account per platform if you like.",
-  "youtube": ["@ryanrunscode"],
-  "youtube": ["@ryan.codes1"],
-  "tiktok": ["@ryan.codes1"],
-  "tiktok": ["@rb.codes"],
-  "instagram": ["ryanrunscode"]
-  "instagram": ["rb.codes1"]
-  "instagram": ["ryan.benjaminee"]
+  "youtube": ["@ryanrunscode", "@ryan.codes1"],
+  "tiktok": ["@rb.codes", "@ryan.codes1"],
+  "instagram": ["ryanrunscode", "rb.codes1", "ryan.benjaminee"]
 }
