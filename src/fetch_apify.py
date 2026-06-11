@@ -1,8 +1,9 @@
 """Fetch public TikTok and Instagram stats via Apify Actors (REST API).
 
-Actors used (both fetch PUBLIC profile data only — no login, no OAuth):
+Actors used (all fetch PUBLIC profile data only — no login, no OAuth):
   - TikTok:    clockworks/tiktok-scraper
-  - Instagram: apify/instagram-scraper
+  - Instagram: apify/instagram-scraper (profile: followers, post count)
+               + apify/instagram-reel-scraper (live per-reel engagement)
 
 Each run: start the Actor, poll until it finishes, then download its dataset.
 Needs the APIFY_TOKEN environment variable.
@@ -18,6 +19,10 @@ API_BASE = "https://api.apify.com/v2"
 # How many recent TikTok videos to scrape per profile. Engagement totals
 # (views/likes/shares/comments) are summed over these videos.
 TIKTOK_VIDEOS_PER_PROFILE = 100
+
+# How many recent Instagram reels to scrape per profile. Engagement totals
+# (views/likes/comments) are summed over these reels.
+INSTAGRAM_REELS_PER_PROFILE = 50
 
 POLL_INTERVAL_SECONDS = 15
 MAX_WAIT_SECONDS = 15 * 60  # give a scrape up to 15 minutes
@@ -101,37 +106,50 @@ def fetch_tiktok_rows(accounts):
 def fetch_instagram_rows(accounts):
     """Return one normalized stats row per Instagram handle in `accounts`.
 
-    With resultsType "details" the scraper returns one profile item that
-    includes the ~12 latest posts Instagram exposes publicly; engagement
-    totals are summed over those posts. Shares are never public on Instagram.
+    Two scrapes per account, because no single public source has everything:
+      1. apify/instagram-scraper (profile details) -> followers, post count.
+         Its embedded latestPosts only carry videoViewCount, which Meta froze
+         for public web scrapers — the number stops updating, so it is NOT
+         usable for views.
+      2. apify/instagram-reel-scraper (recent reels) -> live videoPlayCount
+         ("Plays"), likes and comments, summed over the scraped reels.
+
+    Shares are never public on Instagram.
     """
     rows = []
     for account in accounts:
-        items = _run_actor("apify/instagram-scraper", {
-            "directUrls": [f"https://www.instagram.com/{account.lstrip('@')}/"],
+        handle = account.lstrip("@")
+
+        profile_items = _run_actor("apify/instagram-scraper", {
+            "directUrls": [f"https://www.instagram.com/{handle}/"],
             "resultsType": "details",
         })
-        if not items:
+        if not profile_items:
             raise ValueError(f"Instagram scrape returned nothing for {account!r} — check the handle")
+        profile = profile_items[0]
 
-        profile = items[0]
-        latest_posts = profile.get("latestPosts", [])
+        reels = _run_actor("apify/instagram-reel-scraper", {
+            "username": [handle],
+            "resultsLimit": INSTAGRAM_REELS_PER_PROFILE,
+        })
+        if not reels:
+            # A profile with no reels is legitimate; engagement just sums to 0.
+            print(f"[instagram] {account}: no reels returned")
+
         rows.append({
             "platform": "instagram",
             "account": account,
             "followers": profile.get("followersCount"),
-            # Only video posts have views; photos contribute 0. Prefer
-            # videoPlayCount (live "Plays") — Meta froze the legacy
-            # videoViewCount field for public scrapers, so it's only a
-            # fallback for old items that lack the newer field.
-            "total_views": sum(post.get("videoPlayCount") or post.get("videoViewCount") or 0
-                               for post in latest_posts),
+            # videoPlayCount is the live "Plays" metric; fall back to the
+            # legacy videoViewCount only for old items that lack it.
+            "total_views": sum(reel.get("videoPlayCount") or reel.get("videoViewCount") or 0
+                               for reel in reels),
             # likesCount is -1 when the creator hides likes on a post.
-            "total_likes": sum(max(post.get("likesCount") or 0, 0) for post in latest_posts),
+            "total_likes": sum(max(reel.get("likesCount") or 0, 0) for reel in reels),
             "total_shares": None,  # Instagram does not expose share counts publicly
-            "total_comments": sum(post.get("commentsCount") or 0 for post in latest_posts),
+            "total_comments": sum(reel.get("commentsCount") or 0 for reel in reels),
             "video_count": profile.get("postsCount"),
         })
         print(f"[instagram] {account}: {rows[-1]['followers']:,} followers, "
-              f"{len(latest_posts)} recent posts summed")
+              f"{rows[-1]['total_views']:,} views across {len(reels)} recent reels")
     return rows

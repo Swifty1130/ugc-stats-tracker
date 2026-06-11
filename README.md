@@ -30,8 +30,9 @@ own machine.
   **API key** under APIs & Services → Credentials. Free; no OAuth needed.
 - **Apify** — sign up at [apify.com](https://apify.com), then copy your API
   token from **Settings → API & Integrations**. TikTok and Instagram are
-  scraped through Apify Actors (`clockworks/tiktok-scraper` and
-  `apify/instagram-scraper`), public data only.
+  scraped through Apify Actors (`clockworks/tiktok-scraper`,
+  `apify/instagram-scraper` for profile info, and
+  `apify/instagram-reel-scraper` for live reel plays), public data only.
 
 > **Cost note:** daily Apify pulls of a few accounts cost pennies — each run
 > scrapes one profile page plus recent posts, well within Apify's cheapest
@@ -96,7 +97,9 @@ the table's `UNIQUE (captured_at, platform, account)` constraint.
 - **Shares** are only public on TikTok; YouTube and Instagram show `—` and
   comments serve as the engagement fallback.
 - TikTok views/shares/comments are summed over the latest ~100 videos;
-  followers and likes are account-wide. Instagram engagement covers the
-  ~12 latest posts its public profile exposes.
+  followers and likes are account-wide. Instagram views/likes/comments are
+  summed over the latest ~50 reels (Meta froze the old public view counter,
+  so the tracker reads the live "Plays" metric from reels instead; photo
+  posts aren't counted).
 - The committed `docs/index.html` holds sample placeholder numbers; the first
   workflow run replaces it with your real stats.
