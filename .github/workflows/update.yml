@@ -48,6 +48,11 @@ jobs:
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+        with:
+          # Force the Pages source to "GitHub Actions". In "Deploy from a
+          # branch" mode, every push re-publishes the committed placeholder
+          # docs/index.html over the freshly built dashboard.
+          enablement: true
 
       - name: Upload the dashboard as a Pages artifact
         uses: actions/upload-pages-artifact@v3
