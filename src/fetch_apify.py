@@ -120,8 +120,12 @@ def fetch_instagram_rows(accounts):
             "platform": "instagram",
             "account": account,
             "followers": profile.get("followersCount"),
-            # Only video posts have a view count; photos contribute 0.
-            "total_views": sum(post.get("videoViewCount") or 0 for post in latest_posts),
+            # Only video posts have views; photos contribute 0. Prefer
+            # videoPlayCount (live "Plays") — Meta froze the legacy
+            # videoViewCount field for public scrapers, so it's only a
+            # fallback for old items that lack the newer field.
+            "total_views": sum(post.get("videoPlayCount") or post.get("videoViewCount") or 0
+                               for post in latest_posts),
             # likesCount is -1 when the creator hides likes on a post.
             "total_likes": sum(max(post.get("likesCount") or 0, 0) for post in latest_posts),
             "total_shares": None,  # Instagram does not expose share counts publicly
