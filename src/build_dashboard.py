@@ -130,14 +130,18 @@ def render_html(latest_date, rows):
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500&family=EB+Garamond:ital,wght@1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {{
-    --bg: #F5F1EB;
-    --bg-alt: #EBE5DA;
-    --ink: #1A1A1A;
-    --body: #3A3A38;
-    --muted: #6B6862;
-    --hairline: rgba(26, 26, 26, .14);
-    --green: #1F4D38;
-    --tan: #8A7355;
+    /* Dark "final page" palette: ink background, cream type. The signature
+       green is brightened for contrast against black; the original deep
+       green (#1F4D38) is kept for fills. */
+    --bg: #1A1A1A;
+    --bg-alt: #242420;
+    --ink: #F5F1EB;
+    --body: #C8C3B8;
+    --muted: #8E8A80;
+    --hairline: rgba(245, 241, 235, .16);
+    --green: #54B585;
+    --green-deep: #1F4D38;
+    --tan: #A38963;
   }}
 
   * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -288,7 +292,7 @@ def render_html(latest_date, rows):
     letter-spacing: .13em;
     font-size: 11px;
     color: var(--ink);
-    background: var(--bg-alt);
+    background: var(--green-deep);
     border: 1px solid var(--hairline);
     border-radius: 999px;
     padding: 7px 16px;
@@ -296,14 +300,19 @@ def render_html(latest_date, rows):
 
   /* ---- footer ---- */
   footer {{
-    background: var(--ink);
-    color: var(--bg);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+    max-width: 1240px;
+    margin: 0 auto;
+    border-top: 1px solid var(--hairline);
+    color: var(--muted);
     font-family: "IBM Plex Mono", monospace;
     text-transform: uppercase;
     letter-spacing: .13em;
     font-size: 12px;
-    text-align: center;
-    padding: 40px 32px;
+    padding: 40px 32px 48px;
   }}
 
   @media (max-width: 880px) {{
@@ -348,7 +357,10 @@ def render_html(latest_date, rows):
     </section>
   </main>
 
-  <footer>Ryan Benjamine &middot; UGC &middot; 2026</footer>
+  <footer>
+    <span>Ryan Benjamine &middot; UGC &middot; 2026</span>
+    <span>&sect; 08 &mdash; Performance</span>
+  </footer>
 </body>
 </html>
 '''
